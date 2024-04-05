@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: post-install
+  annotations:
+    "helm.sh/hook": post-install
+spec:
+  template:
+    spec:
+      containers:
+      - name: post-install
+        image: icmlcr.azurecr.io/runners/windows-upgrade:35
+        command: ["powershell" "start-sleep" "21"]
+      restartPolicy: OnFailure
