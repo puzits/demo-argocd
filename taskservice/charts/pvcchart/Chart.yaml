@@ -1,0 +1,10 @@
+apiVersion: v2
+description: A Helm chart for my application
+keywords:
+- helm
+- chart
+maintainers:
+- email: puzit.singh@icertis.com
+  name: Puzit Singh
+name: pvcchart
+version: 1.0.0

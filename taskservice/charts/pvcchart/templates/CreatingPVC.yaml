@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.pvc.name }} # try to keep same as file share name on azure storage for better visibility
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: azurefile-csi
+  volumeName: {{ .Values.pv.name }} # pass pv name
+  resources:
+    requests:
+      storage: {{ .Values.pvc.resources.requests.storage }}

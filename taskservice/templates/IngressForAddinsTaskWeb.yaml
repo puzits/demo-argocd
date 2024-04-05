@@ -1,0 +1,51 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.addins.ingress.hostName }}-addinstaskweb-ici-routing
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+     - {{ .Values.addins.ingress.hostName }}.{{ .Values.addins.domainName }}
+    secretName: ingress-tls-csi
+  rules:
+  - host: {{ .Values.addins.ingress.hostName }}.{{ .Values.addins.domainName }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ .Values.addins.ingress.hostName }}-addins-taskweb-svc
+            port:
+              number: 8443
+        path: /hangfire
+        pathType: Prefix
+  - host: {{ .Values.addins.ingress.hostName }}-outlookjsv2addin.{{ .Values.addins.domainName }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ .Values.addins.ingress.hostName }}-addins-taskweb-svc
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix    
+  - host: {{ .Values.addins.ingress.hostName }}-wordai.{{ .Values.addins.domainName }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ .Values.addins.ingress.hostName }}-addins-taskweb-svc
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  - host: {{ .Values.addins.ingress.hostName }}-originworker.{{ .Values.addins.domainName }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ .Values.addins.ingress.hostName }}-addins-taskweb-svc
+            port:
+              number: 80
+        path: /
+        pathType: Prefix

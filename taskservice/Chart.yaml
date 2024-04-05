@@ -1,0 +1,14 @@
+apiVersion: v2
+dependencies:
+- name: pvcchart
+  repository: file://charts/pvcchart
+  version: 1.0.0
+description: A Helm chart for my application
+keywords:
+- helm
+- chart
+maintainers:
+- email: puzit.singh@icertis.com
+  name: Puzit Singh
+name: taskservice
+version: 1.1.2

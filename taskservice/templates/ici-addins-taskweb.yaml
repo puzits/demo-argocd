@@ -1,0 +1,139 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.addins.hostName }}-addins-taskweb-svc
+spec:
+  ports:
+    - name: http-wordai
+      port: 80
+      targetPort: 80
+    - name: http-outlookjsv2addin
+      port: 8080
+      targetPort: 8080
+    - name: http-taskweb
+      port: 8443
+      targetPort: 8443
+  selector:
+    app: {{ .Values.addins.hostName }}-addins-taskweb
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.addins.hostName }}-addins-taskweb-dep
+spec:
+  replicas: {{ .Values.addins.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.addins.hostName }}-addins-taskweb
+  template:
+    metadata:
+      name: {{ .Values.addins.hostName }}-addins-taskweb-dep
+      labels:
+        app: {{ .Values.addins.hostName }}-addins-taskweb
+    spec:
+      automountServiceAccountToken: false 
+      containers:
+        - name: {{ .Values.addins.hostName }}-addins-taskweb-dep
+          image: {{ .Values.addins.image.registry }}/{{ .Values.addins.image.name }}:{{ .Values.addins.image.tag }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true          
+          volumeMounts:
+            - mountPath: "C:/Icertis/ICM/TaskWeb/{{ .Values.addins.hostName }}"
+              name: volume
+              subPath: {{ .Values.addins.hostName }}
+            - mountPath: "C:/Icertis/ICM/WordAI/ClientApp/dist/{{ .Values.addins.hostName }}"
+              name: volume
+              subPath: {{ .Values.addins.hostName }}
+            - mountPath: "C:/Icertis/ICM/Outlookjsv2Addin/ClientApp/dist/{{ .Values.addins.hostName }}"
+              name: volume
+              subPath: {{ .Values.addins.hostName }}
+          ports:
+            - containerPort: 80
+            - containerPort: 8080
+            - containerPort: 8443
+          env:
+            - name: hostName  
+              value: '{{ .Values.addins.hostName }}'
+            - name: storageName
+              value: '{{ .Values.addins.deployment.env.storageName }}'
+            - name: managedClientId
+              value: '{{ .Values.addins.deployment.env.managedClientId }}'
+            - name: certificatesStorageContainerName
+              value: '{{ .Values.addins.deployment.env.certificatesStorageContainerName }}'
+            - name: TenantConfigsSourceInfo
+              value: '{{ .Values.addins.deployment.env.tenantConfigsSourceInfo }}'
+            - name: TenantHostname  # this is CName
+              value: '{{ .Values.addins.deployment.env.tenantHostName }}'
+            - name: TenantDotHostname 
+              value: '{{ .Values.addins.deployment.env.tenantDotHostName }}'
+            - name: EncryptionThumbprint
+              value: '{{ .Values.addins.deployment.env.encryptionThumbprint }}'
+            - name: addinsApplicationFolderName
+              value: 'TaskWeb'
+            - name: ApplicationName
+              value: 'TaskWeb'
+            - name: IsMultiTenantMode
+              value: '{{ .Values.addins.deployment.env.isMultiTenantMode }}'
+            - name: FileEncryptionMode
+              value: '{{ .Values.addins.deployment.env.fileEncryptionMode }}'
+            - name: azureKeyVaultForCertificates
+              value: '{{ .Values.addins.deployment.env.azureKeyVaultForCertificates }}'
+            - name: azureKeyVaultForSecret
+              value: '{{ .Values.addins.deployment.env.azureKeyVaultForSecret }}'
+            - name: CertificatesInfoList # Holds JSON object with certificate name and destination cert store location
+              value: '{{ .Values.addins.deployment.env.certificatesInfoList }}'
+            - name: enableWordAI  # Accepted values true or false
+              value: '{{ .Values.addins.deployment.env.enableWordAI }}'
+            - name: enableOutlookjsv2Addin # Accepted values true or false
+              value: '{{ .Values.addins.deployment.env.enableOutlookjsv2Addin }}'
+            - name: CoreDotManagedIdentityDotConnectionHubDotMaster
+              value: '{{ .Values.addins.deployment.env.coreDotManagedIdentityDotConnectionHubDotMaster }}'  
+            - name: specificTimeEnabled
+              value: '{{ .Values.addins.deployment.env.specificTimeEnabled }}'
+            - name: specificTime
+              value: '{{ .Values.addins.deployment.env.specificTime }}' 
+            - name: domainName #nus.edu.sg or icertis.com or redbull.com 
+              value: '{{ .Values.addins.deployment.env.domainName }}' 
+          resources:
+            limits:
+              cpu: {{ .Values.addins.deployment.resources.limits.cpu }}
+              memory: {{ .Values.addins.deployment.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.addins.deployment.resources.requests.cpu }}
+              memory: {{ .Values.addins.deployment.resources.requests.memory }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.addins.deployment.readinessProbe.initialDelaySeconds }} # suggested defautlValue: 50
+            periodSeconds: {{ .Values.addins.deployment.readinessProbe.periodSeconds }} # suggested defautlValue: 30
+            httpGet:
+              host:
+              scheme: HTTP
+              path: /
+              httpHeaders: 
+                - name:  Host
+                  value: "{{ .Values.addins.hostName }}-wordai{{ .Values.addins.deployment.env.domainName }}"
+              port: 80
+          livenessProbe:
+            initialDelaySeconds: 300
+            periodSeconds: 180
+            httpGet:
+              host:
+              scheme: HTTP
+              path: /
+              httpHeaders: 
+                - name:  Host
+                  value: "{{ .Values.addins.hostName }}-wordai{{ .Values.addins.deployment.env.domainName }}"
+              port: 80              
+      tolerations:
+        - key: {{ .Values.addins.deployment.tolerations.key }}
+          operator: "Equal"
+          value: "{{ .Values.addins.deployment.tolerations.value }}"
+          effect: "NoExecute"
+      volumes:
+        - name: volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.pvcchart.pvc.name }}
+      nodeSelector:
+        "kubernetes.azure.com/os-sku": Windows2022

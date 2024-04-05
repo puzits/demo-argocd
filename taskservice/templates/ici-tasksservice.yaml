@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.taskservice.hostName }}-tasks-service-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.taskservice.hostName }}-tasks-service
+  template:
+    metadata:
+      name: {{ .Values.taskservice.hostName }}-tasks-service-dep
+      labels:
+        app: {{ .Values.taskservice.hostName }}-tasks-service
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: {{ .Values.taskservice.hostName }}-tasks-service-dep
+          image: {{ .Values.taskservice.image.registry }}/{{ .Values.taskservice.image.name }}:{{ .Values.taskservice.image.tag }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true          
+          volumeMounts:
+            - mountPath: "C:/Icertis/ICM/TaskHost/{{ .Values.taskservice.hostName }}"
+              name: volume
+              subPath: {{ .Values.taskservice.hostName }}
+          env:
+            - name: hostName
+              value: '{{ .Values.taskservice.hostName }}'
+            - name: storageName
+              value: '{{ .Values.taskservice.deployment.env.storageName }}'
+            - name: managedClientId
+              value: '{{ .Values.taskservice.deployment.env.managedClientId }}'
+            - name: certificatesStorageContainerName
+              value: '{{ .Values.taskservice.deployment.env.certificatesStorageContainerName }}'
+            - name: TenantConfigsSourceInfo
+              value: '{{ .Values.taskservice.deployment.env.tenantConfigsSourceInfo }}'
+            - name: TenantHostname  # this is CName
+              value: '{{ .Values.taskservice.deployment.env.tenantHostName }}'
+            - name: TenantDotHostname 
+              value: '{{ .Values.taskservice.deployment.env.tenantDotHostName }}'
+            - name: EncryptionThumbprint
+              value: '{{ .Values.taskservice.deployment.env.encryptionThumbprint }}'
+            - name: tasksserviceApplicationFolderName
+              value: 'TaskHost'
+            - name: ApplicationFolderName
+              value: 'TaskHost'
+            - name: ApplicationName
+              value: 'TaskHost'
+            - name: IsMultiTenantMode
+              value: '{{ .Values.taskservice.deployment.env.isMultiTenantMode }}'
+            - name: FileEncryptionMode
+              value: '{{ .Values.taskservice.deployment.env.fileEncryptionMode }}'
+            - name: azureKeyVaultForCertificates
+              value: '{{ .Values.taskservice.deployment.env.azureKeyVaultForCertificates }}'
+            - name: azureKeyVaultForSecret
+              value: '{{ .Values.taskservice.deployment.env.azureKeyVaultForSecret }}'
+            - name: CertificatesInfoList # Holds JSON object with certificate name and destination cert store location
+              value: '{{ .Values.taskservice.deployment.env.certificatesInfoList }}'
+            - name: CoreDotManagedIdentityDotConnectionHubDotMaster
+              value: '{{ .Values.taskservice.deployment.env.coreDotManagedIdentityDotConnectionHubDotMaster }}'  
+          resources:
+            limits:
+              cpu: {{ .Values.taskservice.deployment.resources.limits.cpu }}
+              memory: {{ .Values.taskservice.deployment.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.taskservice.deployment.resources.requests.cpu }}
+              memory: {{ .Values.taskservice.deployment.resources.requests.memory }}
+      tolerations:
+        - key: {{ .Values.taskservice.deployment.tolerations.key }}
+          operator: "Equal"
+          value: "{{ .Values.taskservice.deployment.tolerations.value }}"
+          effect: "NoExecute"
+      volumes:
+        - name: volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.pvcchart.pvc.name }}
+      nodeSelector:
+        "kubernetes.azure.com/os-sku": Windows2022
