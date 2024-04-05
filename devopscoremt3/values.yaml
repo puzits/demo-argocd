@@ -1,0 +1,126 @@
+
+pvcchart:
+  hostName: devopscoremt3
+  resourceGroupName: imtdevctrgpprmry
+  fileShareName: devopscoremt3-pvc
+  domainName: "devopscoremt3.icertis.com"
+
+  pv:
+    name: devopscoremt3-pv
+    spec:
+      capacity:
+        storage: 5Gi
+  secret:
+    name: devopscoremt3-pv-secret
+  pvc:
+    name: devopscoremt3-pvc
+    resources:
+      requests:
+        storage: 5Gi
+
+secretProvider:
+  sslCertName: Icertis-SSL
+  usercontentSslCertName: Icertis-SSL
+  sslManagedClientId: 53dfe81d-e2fe-48f1-a045-46a82a326116
+  sslAkvName: iciglobalcertvault
+  sslAkvTenantId: d70e9917-d604-490e-9fe5-8f2331b58a1b
+  
+addins:
+  hostName: devopscoremt3
+  domainName: "icertis.com"
+  replicas: 1
+  image:
+    registry: icmgcr.azurecr.io
+    name: ici-addins-taskweb
+    tag: 8.5.2.1
+  hpa:
+    minReplicas: 1
+    maxReplicas: 3
+    resource:
+      cpu:
+        averageUtilization: 70
+      memory:
+        averageUtilization: 98
+    behavior:
+      scaleDown:
+        stabilizationWindowSeconds: 120
+      scaleUp:
+        stabilizationWindowSeconds: 120
+  deployment:
+    resources:
+      limits:
+        cpu: "2"
+        memory: 6144M
+      requests:
+        cpu: 650m
+        memory:  2048M
+
+    env:
+     storageName: icmreqsstrprmry
+     managedClientId: 1a90d493-f5ae-4b15-845c-d7851ed98a92
+     certificatesStorageContainerName: icertiscert
+     tenantConfigSourceInfo: lsogQcM7gos2FJuAmBTFKMv9WN46mzQPg5CrWta5fQZwJT84raSR2wQVx0mYI0VliupbqmSl7kcMsymDoRQA/Lgnpyqruj3NFOZRphW0GcSfOzeCWIKk7rFr7vkzhqtfBdXXu9+1Labn5+cF8H97FdK2bdXw8MjsqGSlxarJ0ZbIqB1hvQ0A+ouUidJ0XhP/IncUQVCEo5ZmbeIia1qDHL4K6RjuhDx3eNUszrLhD3YdpLPuEsLPtNF0t3GP0Kzilkw/azzUGZg/vyrocsHN/LPYYAZNc6W48HsddwPWHQKU7EfywrPopFzE5q6tDQalvStEy3csfPQiV31WtZoboA==$frcOCdRL3Utnmmi8DlTMyrlSTIg2/L/gOH8+APvm3DjwLWNmUYV5P79GL3/ewBIWRqsukBVILdlFhQVh+f9hdAoiYDTpA6JjxkLHAiZVN1whvZxcOvV88O27El8Lfpjg/bSNJaUJyi/9K/T21yO6ymiyAqd27QoxPqCWrPnJac9E5q0MMD3tp2vg/dpXt6T4gvF3g3hf9c8sngXGS8Wn/efB1ZFtic7ba8T2wHl60UFfeICkTPdcXiKpwRap/LICsQMQ6Zh17HB9UsXirS4fWBwjXp6M/j6/lbw07tP/otk=
+     tenantHostName: devopscoremt3.icertis.com
+     tenantDotHostName: devopscoremt3.icertis.com
+     encryptionThumbprint: 1A552CAC60BB9C5D75FAF7CA9BB9F0BBCDEE97F7
+     isMultiTenantMode: "True"
+     fileEncryptionMode: "False"
+     azureKeyVaultForCertificates: iciglobalcertvault
+     azureKeyVaultForSecret: iciglobalcertsecretvault
+     certificatesInfoList: '[{"Name":"IcmDevRoot","StoreLocation":"cert:\\LocalMachine\\My"},{"Name":"IcmClientCertificate","StoreLocation":"cert:\\LocalMachine\\My"}]'
+     enableWordAI: "True"
+     enableOutlookjsv2Addin: "True"
+     coreDotManagedIdentityDotConnectionHubDotMaster: '{"HostingProvider":"Azure","Azure":{"Sql":{"EnabledManagedIdentity":false,"AccessTokenUrl":"https://database.windows.net//.default","ManagedIdentityClientId":"00000000-0000-0000-0000-000000000000"},"Storage":{"EnabledManagedIdentity":false,"ManagedIdentityClientId":"00000000-0000-0000-0000-000000000000"}}}'
+     specificTimeEnabled: "True"
+     specificTime: "02:00:00"
+     domainName: ".icertis.com"
+
+    readinessProbe:
+      initialDelaySeconds: 50
+      periodSeconds: 30
+
+    tolerations:
+      key: "iciapplication"
+      value: webapps
+  ingress:
+    hostName: devopscoremt3
+
+taskservice:
+  hostName: devopscoremt3
+  domainName: devopscoremt3.icertis.com
+  replicas: 1
+  image:
+    registry: icmgcr.azurecr.io
+    name: ici-tasks-service
+    tag: 8.5.2.1
+  deployment:
+    resources:
+      limits:
+        cpu: 400m
+        memory: 512M
+      requests:
+        cpu: 200m
+        memory: 256M
+
+    env:
+     storageName: icmreqsstrprmry
+     managedClientId: 1a90d493-f5ae-4b15-845c-d7851ed98a92
+     certificatesStorageContainerName: icertiscert
+     tenantConfigSourceInfo: lsogQcM7gos2FJuAmBTFKMv9WN46mzQPg5CrWta5fQZwJT84raSR2wQVx0mYI0VliupbqmSl7kcMsymDoRQA/Lgnpyqruj3NFOZRphW0GcSfOzeCWIKk7rFr7vkzhqtfBdXXu9+1Labn5+cF8H97FdK2bdXw8MjsqGSlxarJ0ZbIqB1hvQ0A+ouUidJ0XhP/IncUQVCEo5ZmbeIia1qDHL4K6RjuhDx3eNUszrLhD3YdpLPuEsLPtNF0t3GP0Kzilkw/azzUGZg/vyrocsHN/LPYYAZNc6W48HsddwPWHQKU7EfywrPopFzE5q6tDQalvStEy3csfPQiV31WtZoboA==$frcOCdRL3Utnmmi8DlTMyrlSTIg2/L/gOH8+APvm3DjwLWNmUYV5P79GL3/ewBIWRqsukBVILdlFhQVh+f9hdAoiYDTpA6JjxkLHAiZVN1whvZxcOvV88O27El8Lfpjg/bSNJaUJyi/9K/T21yO6ymiyAqd27QoxPqCWrPnJac9E5q0MMD3tp2vg/dpXt6T4gvF3g3hf9c8sngXGS8Wn/efB1ZFtic7ba8T2wHl60UFfeICkTPdcXiKpwRap/LICsQMQ6Zh17HB9UsXirS4fWBwjXp6M/j6/lbw07tP/otk=
+     tenantHostName: devopscoremt3.icertis.com
+     tenantDotHostName: devopscoremt3.icertis.com
+     encryptionThumbprint: 1A552CAC60BB9C5D75FAF7CA9BB9F0BBCDEE97F7
+     isMultiTenantMode: "True"
+     fileEncryptionMode: "False"
+     azureKeyVaultForCertificates: iciglobalcertvault
+     azureKeyVaultForSecret: iciglobalcertsecretvault
+     certificatesInfoList: '[{"Name":"IcmDevRoot","StoreLocation":"cert:\\LocalMachine\\My"},{"Name":"IcmClientCertificate","StoreLocation":"cert:\\LocalMachine\\My"}]'
+     coreDotManagedIdentityDotConnectionHubDotMaster: '{"HostingProvider":"Azure","Azure":{"Sql":{"EnabledManagedIdentity":false,"AccessTokenUrl":"https://database.windows.net//.default","ManagedIdentityClientId":"00000000-0000-0000-0000-000000000000"},"Storage":{"EnabledManagedIdentity":false,"ManagedIdentityClientId":"00000000-0000-0000-0000-000000000000"}}}'
+    
+    readinessProbe:
+      initialDelaySeconds: 50
+      periodSeconds: 30
+
+    tolerations:
+      key: "iciapplication"
+      value: "taskservice"
