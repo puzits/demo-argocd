@@ -1,0 +1,9 @@
+apiVersion: v2
+name: taskservice
+version: 1.1.2
+description: A Helm chart for my application
+type: application
+dependencies: 
+- name: taskservice
+  version: 1.1.2
+  repository: oci://aksrunner.azurecr.io/helm
